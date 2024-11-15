@@ -35,16 +35,24 @@ function parent_setupEventListener() {
                 );
             coords.push(coord);
         }
-
-        showHighlight(pageIdx, coords);
-
         window.parent.postMessage({
             action: 'textSelect',
             page: pageIdx + 1,
             text,
             coords,
         }, "*");
+
+        addHighlight(pageIdx, coords);
     });
+}
+
+const pageHighlights = {};
+
+function addHighlight(pageIdx, coords) {
+    let highlights = pageHighlights[pageIdx] ?? [];
+    highlights = [...highlights, ...coords];
+    pageHighlights[pageIdx] = highlights;
+    showHighlight(pageIdx, coords);
 }
 
 function showHighlight(pageIdx, coords) {
@@ -54,17 +62,9 @@ function showHighlight(pageIdx, coords) {
     }
     const viewport = page.viewport;
     if (!page.canvas) {
-        setTimeout(function () {
-            showHighlight(pageIdx, coords);
-            return;
-        }, 100);
         return;
     }
-
-    console.log('showHighlight', pageIdx, coords);
-
     const pageElement = page.canvas.parentElement;
-
     coords.forEach(function (rect) {
         const bounds = viewport.convertToViewportRectangle(rect);
         const el = document.createElement('div');
@@ -76,13 +76,26 @@ function showHighlight(pageIdx, coords) {
     });
 }
 
+function hideHighlight(pageIdx) {
+    const page = PDFViewerApplication.pdfViewer.getPageView(pageIdx);
+    if (!page) {
+        return;
+    }
+    if (!page.canvas) {
+        return;
+    }
+    const pageElement = page.canvas.parentElement;
+    for (const child of pageElement.getElementsByClassName('selection')) {
+        pageElement.removeChild(child);
+    }
+}
+
 window.addEventListener('message', function (e) {
     const detail = e.data;
-    console.log(e);
     if (detail.action === 'showHighlight') {
         const coords = detail.coords;
-        const pageIdx = detail.page + 1;
-        showHighlight(pageIdx, coords);
+        const pageIdx = detail.page - 1;
+        addHighlight(pageIdx, coords);
     }
 });
 

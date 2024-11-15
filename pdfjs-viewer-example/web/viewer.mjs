@@ -32,11 +32,11 @@
 /******/ 			if (__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
 /******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
         /******/
-}
+      }
       /******/
-}
+    }
     /******/
-};
+  };
   /******/
 })();
 /******/
@@ -1368,6 +1368,7 @@ class EventBus {
     this._off(eventName, listener);
   }
   dispatch(eventName, data) {
+    console.log(eventName);
     const eventListeners = this.#listeners[eventName];
     if (!eventListeners || eventListeners.length === 0) {
       return;
@@ -14584,8 +14585,21 @@ function webViewerLoad() {
     document.dispatchEvent(event);
   }
   PDFViewerApplication.run(config).then(function () {
-    PDFViewerApplication.eventBus.on("documentinit", function () {
-      window.parent.postMessage({ action: "documentinit" }, "*");
+    PDFViewerApplication.eventBus.on("documentloaded", function () {
+      window.parent.postMessage({ action: "documentloaded" }, "*");
+    });
+    PDFViewerApplication.eventBus.on("pagerendered", function (e) {
+      setTimeout(function () {
+        const page = e.pageNumber;
+        const coords = pageHighlights[page] ?? [];
+        showHighlight(page, coords);
+      }, 0);
+    });
+    PDFViewerApplication.eventBus.on("scalechanging", function (e) {
+      Object.keys(pageHighlights).forEach(function (page) {
+        hideHighlight(page);
+        showHighlight(page, pageHighlights[page]);
+      });
     });
   });
 }
