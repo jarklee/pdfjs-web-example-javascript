@@ -1,21 +1,59 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>PDF.js Example</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
+
+<head>
+  <meta charset="UTF-8" />
+  <title>PDF.js Example</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <style>
+    a {
+      display: block;
+    }
+  </style>
+
+</head>
+
+<body style="width: 100vw; height: 100vh; overflow: hidden;">
+  <iframe id="pdf" src="/web/viewer.html?file=document.pdf" width="100%" height="100%" style="border: none"></iframe>
+
+  <script>
+    const pdfEl = document.getElementById('pdf');
+
+    function showHighlight(page, coords) {
+      pdfEl.contentWindow.postMessage({
+        action: 'showHighlight',
+        coords,
+        page,
+      }, '*');
+    }
+
+    window.addEventListener('message', function (e) {
+      if (e.source === pdfEl.contentWindow) {
+        const action = e.data.action;
+        if (action === 'documentinit') {
+          showHighlight(0, [[
+            69.03144124348958,
+            473.64464285714286,
+            344.70516938709073,
+            448.3875
+          ]]);
+          showHighlight(1, [[
+            69.03144124348958,
+            473.64464285714286,
+            344.70516938709073,
+            448.3875
+          ]]);
+        } else {
+          console.log('from pdf viewer', e.data);
+        }
       }
-    </style>
-  </head>
-  <body>
-    <iframe
-      src="/web/viewer.html?file=document.pdf"
-      width="100%"
-      height="2000px"
-      style="border: none"
-    />
-  </body>
+    });
+  </script>
+</body>
+
 </html>
